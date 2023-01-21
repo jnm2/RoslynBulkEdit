@@ -69,7 +69,7 @@ public static class ParserTestOperations
         return root.ReplaceToken(literal.Token, SyntaxFactory.Literal(newSyntax).WithTriviaFrom(literal.Token));
     }
 
-    public static SourceText ApplyTestResult(SourceText text, SyntaxNode root, TestCase testCase, TestResult result)
+    public static TextAndRoot ApplyTestResult(TextAndRoot textAndRoot, TestCase testCase, TestResult result)
     {
         if (result.StackTrace is not null)
         {
@@ -79,7 +79,7 @@ public static class ParserTestOperations
             {
                 var newDiagnosticAssertionSyntax = GetDiagnosticAssertionSyntax(result.Message);
 
-                var method = GetMethodDeclaration(root, testCase);
+                var method = GetMethodDeclaration(textAndRoot.Root, testCase);
                 var (usingInvocation, _, _) = FindUsingInvocation(method)!.Value;
                 if (usingInvocation.ArgumentList.Arguments.Count == 1)
                 {
@@ -95,19 +95,19 @@ public static class ParserTestOperations
             if (trimmedStackTrace.StartsWith("at Microsoft.CodeAnalysis.CSharp.UnitTests.ParsingTests.N(")
                 && !string.IsNullOrWhiteSpace(result.Output))
             {
-                var method = GetMethodDeclaration(root, testCase);
+                var method = GetMethodDeclaration(textAndRoot.Root, testCase);
                 var nodeAssertionSpan = GetNodeAssertionSpan(method);
-                var outerLevelIndentationStart = text.Lines.GetLineFromPosition(nodeAssertionSpan.Start).Start;
-                var outerLevelIndentation = text.ToString(TextSpan.FromBounds(outerLevelIndentationStart, nodeAssertionSpan.Start));
+                var outerLevelIndentationStart = textAndRoot.Text.Lines.GetLineFromPosition(nodeAssertionSpan.Start).Start;
+                var outerLevelIndentation = textAndRoot.Text.ToString(TextSpan.FromBounds(outerLevelIndentationStart, nodeAssertionSpan.Start));
                 var newNodeAssertionSyntax = AddNodeAssertionIndentation(result.Output, outerLevelIndentation);
 
-                return text.WithChanges(new TextChange(
+                return textAndRoot.WithChanges(new TextChange(
                     TextSpan.FromBounds(outerLevelIndentationStart, nodeAssertionSpan.End),
                     newNodeAssertionSyntax));
             }
         }
 
-        return text;
+        return textAndRoot;
 
         static string? GetDiagnosticAssertionSyntax(string testResultMessage)
         {

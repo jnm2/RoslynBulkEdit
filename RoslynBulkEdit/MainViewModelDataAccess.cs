@@ -68,21 +68,18 @@ public sealed class MainViewModelDataAccess
 
         await using var stream = new FileStream(testCase.FilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
 
-        var text = SourceText.From(stream);
-        var root = CSharpSyntaxTree.ParseText(text).GetRoot();
-        root = ParserTestOperations.UpdateTestSyntax(root, testCase, newSyntax);
-        var updatedText = root.GetText();
+        var current = TextAndRoot.WithoutRoot(SourceText.From(stream));
+        var updated = TextAndRoot.WithoutText(ParserTestOperations.UpdateTestSyntax(current.Root, testCase, newSyntax));
 
         do
         {
-            text = updatedText;
-            await ReplaceFileContents(stream, text);
+            current = updated;
+            await ReplaceFileContents(stream, current.Text);
             var result = await TestDriver.Run(testCase);
 
-            updatedText = ParserTestOperations.ApplyTestResult(text, root, testCase, result);
-            root = CSharpSyntaxTree.ParseText(updatedText).GetRoot();
+            updated = ParserTestOperations.ApplyTestResult(current, testCase, result);
         }
-        while (updatedText != text);
+        while (updated != current);
     }
 
     private static async Task ReplaceFileContents(FileStream stream, SourceText text)
