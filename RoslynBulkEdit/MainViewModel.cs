@@ -16,16 +16,15 @@ public sealed class MainViewModel : ObservableObject
 
     public ImmutableArray<string> AvailableSolutionFolders { get; }
 
-    private string? selectedSolutionFolder;
     public string? SelectedSolutionFolder
     {
-        get => selectedSolutionFolder;
+        get;
         set
         {
-            if (!Set(ref selectedSolutionFolder, value)) return;
+            if (!Set(ref field, value)) return;
 
-            var discoveredFiles = selectedSolutionFolder is not null
-                ? dataAccess.DiscoverCSharpParsingTests(selectedSolutionFolder)
+            var discoveredFiles = field is not null
+                ? dataAccess.DiscoverCSharpParsingTests(field)
                 : ImmutableArray<(string Path, DateTime LastModified)>.Empty;
 
             var lastModifiedIndex = discoveredFiles.IndexOfMax(file => file.LastModified);
@@ -37,23 +36,20 @@ public sealed class MainViewModel : ObservableObject
         }
     }
 
-    private ImmutableArray<AvailableFile> availableFiles = ImmutableArray<AvailableFile>.Empty;
-    public ImmutableArray<AvailableFile> AvailableFiles { get => availableFiles; private set => Set(ref availableFiles, value); }
+    public ImmutableArray<AvailableFile> AvailableFiles { get; private set => Set(ref field, value); } = ImmutableArray<AvailableFile>.Empty;
 
-    private AvailableFile? selectedFile;
     public AvailableFile? SelectedFile
     {
-        get => selectedFile;
+        get;
         set
         {
-            if (!Set(ref selectedFile, value)) return;
+            if (!Set(ref field, value)) return;
 
-            TestCases = selectedFile is not null
-                ? dataAccess.LoadTestCases(selectedFile.Path)
+            TestCases = field is not null
+                ? dataAccess.LoadTestCases(field.Path)
                 : ImmutableArray<TestCase>.Empty;
         }
     }
 
-    private ImmutableArray<TestCase> testCases = ImmutableArray<TestCase>.Empty;
-    public ImmutableArray<TestCase> TestCases { get => testCases; private set => Set(ref testCases, value); }
+    public ImmutableArray<TestCase> TestCases { get; private set => Set(ref field, value); } = ImmutableArray<TestCase>.Empty;
 }
