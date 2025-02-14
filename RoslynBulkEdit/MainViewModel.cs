@@ -25,7 +25,7 @@ public sealed class MainViewModel : ObservableObject
 
             var discoveredFiles = field is not null
                 ? dataAccess.DiscoverCSharpParsingTests(field)
-                : ImmutableArray<(string Path, DateTime LastModified)>.Empty;
+                : [];
 
             var lastModifiedIndex = discoveredFiles.IndexOfMax(file => file.LastModified);
 
@@ -36,7 +36,7 @@ public sealed class MainViewModel : ObservableObject
         }
     }
 
-    public ImmutableArray<AvailableFile> AvailableFiles { get; private set => Set(ref field, value); } = ImmutableArray<AvailableFile>.Empty;
+    public ImmutableArray<AvailableFile> AvailableFiles { get; private set => Set(ref field, value); } = [];
 
     public AvailableFile? SelectedFile
     {
@@ -47,9 +47,9 @@ public sealed class MainViewModel : ObservableObject
 
             TestCases = field is not null
                 ? dataAccess.LoadTestCases(field.Path)
-                : ImmutableArray<TestCase>.Empty;
+                : [];
         }
     }
 
-    public ImmutableArray<TestCase> TestCases { get; private set => Set(ref field, value); } = ImmutableArray<TestCase>.Empty;
+    public ImmutableArray<TestCase> TestCases { get; private set => Set(ref field, value); } = [];
 }
